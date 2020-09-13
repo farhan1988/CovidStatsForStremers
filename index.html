@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Covid Widget</title>
+
+    <!-- Bootstrap standard CDN CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<script>
+    var citites_required = {
+        "DL": {
+            'icon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Seal_of_the_National_Capital_Territory_of_Delhi.svg/470px-Seal_of_the_National_Capital_Territory_of_Delhi.svg.png',
+            'city': 'Delhi'
+        },
+        "AP": {
+            'icon': 'https://upload.wikimedia.org/wikipedia/commons/9/9e/Andhraseal.png',
+            'city': 'Y.S.R. Kadapa'
+        },
+        "KA": {
+            'icon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_Karnataka.svg/695px-Seal_of_Karnataka.svg.png',
+            'city': 'Bengaluru Urban'
+        },
+        "TN": {
+            'icon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/TamilNadu_Logo.svg/800px-TamilNadu_Logo.svg.png',
+            'city': 'Chennai'
+        },
+        "WB": {
+            'icon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Emblem_of_West_Bengal.png/459px-Emblem_of_West_Bengal.png',
+            'city': 'Kolkata'
+        }
+    }
+</script>
+
+<style>
+    ul#city_stats {
+        margin: 0px;
+        padding: 0px;
+    }
+
+    ul#city_stats li {
+        font-size: 14px;
+        display: inline;
+        margin-left: 5px;
+        font-weight: normal !important;
+    }
+
+    /* #slideshow {
+        margin: 50px auto;
+        position: relative;
+        width: 240px;
+        height: 240px;
+        padding: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    } */
+
+    #slideshow>div.card {
+        position: absolute;
+        top: 10px;
+    }
+
+    .card {
+        border: none !important;
+    }
+</style>
+
+<body>
+    <div id="slideshow">
+
+    </div>
+
+    <!-- Bootstrap standard CDN js -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            console.log("jQuery document loaded....");
+
+            getCovidData();
+            $("#slideshow > div.card:gt(0)").hide();
+            setInterval(function () {
+                $('#slideshow > div.card:first')
+                    .fadeOut(1000)
+                    .next()
+                    .fadeIn(1000)
+                    .end()
+                    .appendTo('#slideshow');
+            }, 5000);
+        });
+
+        function getCovidData() {
+            var url = 'https://api.covid19india.org/v4/min/data.min.json';
+            $.ajax({
+                url: url,
+                method: "GET"
+            }).done(function (res) {
+                console.log(res);
+                formatData(res)
+            })
+        }
+
+        function formatData(covid_data) {
+            for (const state in citites_required) {
+                var required_city = citites_required[state]['city'];
+                //console.log("Selected City is " + required_city);
+                var states_covid_data = covid_data[state];
+                var city_stats = states_covid_data.districts[required_city].total;
+                console.log(required_city + " has total of " + city_stats.confirmed + " confirmed cases.")
+
+                var ui_city_stats = '<div class="card" style="width: 450px; display:none;">';
+                ui_city_stats += '<div class="card-body">'
+                ui_city_stats += '<div class="row">'
+                ui_city_stats += '<div><img src=' + citites_required[state]['icon'] + ' style="max-width: 75px;"></div>'
+                ui_city_stats += '<div class="col city_stats">'
+                ui_city_stats += "<p><b>" + required_city + "</b></p>"
+                ui_city_stats += "<ul id='city_stats'>"
+                ui_city_stats += '<li class="badge badge-danger">C : ' + city_stats.confirmed + '</li>'
+                ui_city_stats += '<li class="badge badge-success">R : ' + city_stats.recovered + '</li>'
+                ui_city_stats += '<li class="badge badge-dark">D : ' + city_stats.deceased + '</li>'
+                if (city_stats.tested) {
+                    ui_city_stats += '<li class="badge badge-info">T : ' + city_stats.tested + '</li>'
+                }
+                ui_city_stats += "</ul></div></div></div></div>"
+                $("#slideshow").append(ui_city_stats)
+            }
+        }
+
+    </script>
+</body>
+
+</html>
